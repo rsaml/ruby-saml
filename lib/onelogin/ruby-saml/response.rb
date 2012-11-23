@@ -36,16 +36,16 @@ module Onelogin
       # The value of the user identifier as designated by the initialization request response
       def name_id
         @name_id ||= begin
-          node = REXML::XPath.first(document, "/p:Response/a:Assertion[@ID='#{document.signed_element_id}']/a:Subject/a:NameID", { "p" => PROTOCOL, "a" => ASSERTION })
-          node ||=  REXML::XPath.first(document, "/p:Response[@ID='#{document.signed_element_id}']/a:Assertion/a:Subject/a:NameID", { "p" => PROTOCOL, "a" => ASSERTION })
+          node = REXML::XPath.first(document, "/p:Response/a:Assertion/a:Subject/a:NameID", { "p" => PROTOCOL, "a" => ASSERTION })
+          node = REXML::XPath.first(document, "/p:Response/a:Assertion/a:Subject/a:NameID", { "p" => PROTOCOL, "a" => ASSERTION })
           node.nil? ? nil : node.text
         end
       end
 
       def sessionindex
         @sessionindex ||= begin
-          node = REXML::XPath.first(document, "/p:Response/a:Assertion[@ID='#{document.signed_element_id}']/a:AuthnStatement", { "p" => PROTOCOL, "a" => ASSERTION })
-          node ||=  REXML::XPath.first(document, "/p:Response[@ID='#{document.signed_element_id}']/a:Assertion/a:AuthnStatement", { "p" => PROTOCOL, "a" => ASSERTION })
+          node = REXML::XPath.first(document, "/p:Response/a:Assertion]/a:AuthnStatement", { "p" => PROTOCOL, "a" => ASSERTION })
+          node ||=  REXML::XPath.first(document, "/p:Response/a:Assertion/a:AuthnStatement", { "p" => PROTOCOL, "a" => ASSERTION })
           node.nil? ? nil : node.attributes['SessionIndex']
         end
       end
@@ -92,7 +92,7 @@ module Onelogin
       # Conditions (if any) for the assertion to run
       def conditions
         @conditions ||= begin
-          REXML::XPath.first(document, "/p:Response/a:Assertion[@ID='#{document.signed_element_id}']/a:Conditions", { "p" => PROTOCOL, "a" => ASSERTION })
+          REXML::XPath.first(document, "/p:Response/a:Assertion/a:Conditions", { "p" => PROTOCOL, "a" => ASSERTION })
         end
       end
 
@@ -114,7 +114,7 @@ module Onelogin
         validate_structure(soft)      &&
         validate_response_state(soft) &&
         validate_conditions(soft)     &&
-        document.validate(get_fingerprint, soft) && 
+        ((fingerprint = get_fingerprint) ? document.validate(fingerprint, soft) : true ) &&
         success?
       end
 
@@ -137,10 +137,6 @@ module Onelogin
 
         if settings.nil?
           return soft ? false : validation_error("No settings on response")
-        end
-
-        if settings.idp_cert_fingerprint.nil? && settings.idp_cert.nil?
-          return soft ? false : validation_error("No fingerprint or certificate on settings")
         end
 
         true
