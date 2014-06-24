@@ -23,6 +23,8 @@ Gem::Specification.new do |s|
   s.summary = %q{SAML Ruby Tookit}
   s.test_files = `git ls-files test/*`.split("\n")
 
+  s.add_development_dependency 'test-unit', '~> 2.2.0'
+
   s.add_runtime_dependency("canonix", ["0.1.1"])
   s.add_runtime_dependency("uuid", ["~> 2.3"])
   s.add_runtime_dependency("nokogiri")
